@@ -6,7 +6,7 @@ import { observer } from "mobx-react-lite";
 export default observer(function ActivityList() {
   const [target, setTarget] = useState('');
   const {activityStore} = useStore();
-  const {deleteActivity, loading, activities} = activityStore;
+  const {deleteActivity, loading, activitiesByDate } = activityStore;
 
   function handleDeleteActivity(e: SyntheticEvent<HTMLButtonElement>, id: string){
     setTarget(e.currentTarget.name);
@@ -17,7 +17,7 @@ export default observer(function ActivityList() {
   return (
     <Segment>
       <Item.Group divided>
-        {activities.map((activity) => (
+        {activitiesByDate.map((activity) => (
           <Item key={activity.id}>
             <Item.Content>
               <Item.Header as="a">{activity.title}</Item.Header>
