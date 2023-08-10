@@ -2,6 +2,7 @@ import React, { SyntheticEvent, useState } from "react";
 import { Segment, Item, Button, Label } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import { observer } from "mobx-react-lite";
+import { Link } from "react-router-dom";
 
 export default observer(function ActivityList() {
   const [target, setTarget] = useState('');
@@ -35,7 +36,7 @@ export default observer(function ActivityList() {
                   content="Delete" 
                   color="red" 
                   onClick={(e) => handleDeleteActivity(e, activity.id)} />
-                <Button floated='right' content="View" color="blue" onClick={() => activityStore.selectActivity(activity.id)} />
+                <Button floated='right' content="View" color="blue" as={Link} to={`/activities/${activity.id}`} />
                 <Label basic content={activity.category} />
               </Item.Extra>
             </Item.Content>

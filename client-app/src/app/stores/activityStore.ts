@@ -22,12 +22,11 @@ export default class ActivityStore{
     }
 
     loadingActivities = async () => {
-        //this.setLoadingInitial(true);
+        this.setLoadingInitial(true);
         try {
             const activities = await agent.Activities.list();
             activities.forEach(activity=>{
-                activity.date = activity.date.split('T')[0];
-                this.activityRegistry.set(activity.id, activity);
+                this.setActivity(activity);
             });
         } catch (error) {
             console.log(error);
@@ -39,21 +38,31 @@ export default class ActivityStore{
         this.loadingInitial = state;
     }
 
+    private setActivity = (activity: Activity) => {
+        activity.date = activity.date.split('T')[0];
+        this.activityRegistry.set(activity.id, activity);
+    }
+
+    loadingActivity = async(id: string)=>{
+        if(this.activityRegistry.has(id)) this.selectedActivity = this.activityRegistry.get(id);
+        try {
+            this.setLoadingInitial(true);
+            const activity = await agent.Activities.details(id);
+            runInAction(()=>{
+                this.selectedActivity = activity;
+            })
+        } catch (error) {
+            console.log(error);
+        }
+        this.setLoadingInitial(false);
+    }
+
     selectActivity = (id: string) => {
         this.selectedActivity = this.activityRegistry.get(id);
-      }
+    }
     
     cancelSelectedActivity = () => {
         this.selectedActivity = undefined;
-    }
-
-    openForm = (id?: string) => {
-        id ? this.selectActivity(id) : this.cancelSelectedActivity();
-        this.editMode = true;
-    }
-
-    closeForm = () => {
-        this.editMode = false;
     }
 
     createActivity = async (activity: Activity) => {
