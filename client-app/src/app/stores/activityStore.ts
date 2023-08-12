@@ -9,7 +9,7 @@ export default class ActivityStore{
     editMode: boolean = false;
     loading: boolean = false;
     formSubmit: boolean = false;
-    loadingInitial: boolean = true;
+    loadingInitial: boolean = false;
 
     constructor(){
         makeAutoObservable(this)
@@ -31,6 +31,8 @@ export default class ActivityStore{
         } catch (error) {
             console.log(error);
         }
+        console.log(this.activityRegistry);
+        
         this.setLoadingInitial(false);
     }
 
@@ -44,25 +46,23 @@ export default class ActivityStore{
     }
 
     loadingActivity = async(id: string)=>{
-        if(this.activityRegistry.has(id)) this.selectedActivity = this.activityRegistry.get(id);
-        try {
-            this.setLoadingInitial(true);
-            const activity = await agent.Activities.details(id);
-            runInAction(()=>{
-                this.selectedActivity = activity;
-            })
-        } catch (error) {
-            console.log(error);
+        if(this.activityRegistry.has(id)) {
+            this.selectedActivity = this.activityRegistry.get(id);
+            return this.activityRegistry.get(id);
+        } else {
+            try {
+                this.setLoadingInitial(true);
+                const activity = await agent.Activities.details(id);
+                runInAction(()=>{
+                    this.selectedActivity = activity;
+                })
+                this.setLoadingInitial(false);
+                return activity;
+            } catch (error) {
+                console.log(error);
+                this.setLoadingInitial(false);
+            }
         }
-        this.setLoadingInitial(false);
-    }
-
-    selectActivity = (id: string) => {
-        this.selectedActivity = this.activityRegistry.get(id);
-    }
-    
-    cancelSelectedActivity = () => {
-        this.selectedActivity = undefined;
     }
 
     createActivity = async (activity: Activity) => {
@@ -112,7 +112,9 @@ export default class ActivityStore{
             await agent.Activities.delete(id);
             runInAction(() => {
                 this.activityRegistry.delete(id);
-                if(this.selectedActivity?.id === id) this.cancelSelectedActivity();
+                if(this.selectedActivity?.id === id) {
+                    this.selectedActivity = undefined;
+                }
             })
         } catch (error) {
             console.log(error);

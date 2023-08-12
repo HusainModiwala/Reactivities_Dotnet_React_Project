@@ -1,13 +1,19 @@
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import { Segment, Form, Button } from "semantic-ui-react";
 import { useStore } from "../../../app/stores/store";
 import { observer } from "mobx-react-lite";
+import { useParams, useNavigate } from "react-router-dom";
+import { Activity } from "../../../app/models/activity";
+import LoadingComponent from "../../../app/layout/LoadingComponent";
+import { v4 as uuid } from 'uuid';
 
 export default observer (function ActivityForm() {
   const{activityStore} = useStore();
-  const {selectedActivity, createActivity, updateActivity, formSubmit} = activityStore;
+  const { createActivity, updateActivity, formSubmit, loadingActivity, loadingInitial} = activityStore;
+  const {id} = useParams();
+  const navigate = useNavigate();
 
-  const initialState = selectedActivity ?? {
+  const [activity, setActivity] = useState<Activity>({
     id: '',
     title: '',
     date: '',
@@ -15,19 +21,31 @@ export default observer (function ActivityForm() {
     category: '',
     city: '',
     venue: ''
-  }
+});
 
-  const [activity, setActivity] = useState(initialState);
+  useEffect(() => {
+    if(id) loadingActivity(id).then((activity) => {
+      activity!.date = activity!.date.split('T')[0];
+      setActivity(activity!)
+    }) 
+  }, [id, loadingActivity])
 
   function handleInputChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>){
     const {name, value} = event.target;
     setActivity({...activity, [name]: value});
   }
 
-  function handleSubmit() {
-    activity.id ? updateActivity(activity) : createActivity(activity);
+  async function handleSubmit() {
+    if(!activity.id){
+      activity.id = uuid();
+      await createActivity(activity)
+    } else{
+      await updateActivity(activity)
+    }
+    navigate(`/activities/${activity.id}`)
   }
-  
+
+  if(loadingInitial) return <LoadingComponent content="Loading Activity..."/>
   return (
     <Segment clearing>
       <Form onSubmit = {() => handleSubmit()}>
