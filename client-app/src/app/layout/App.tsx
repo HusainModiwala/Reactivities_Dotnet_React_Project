@@ -9,7 +9,7 @@ function App() {
   const location = useLocation();
   return (
     <>
-      <ToastContainer position='bottom-right' hideProgressBar theme="colored" />
+      {/* <ToastContainer position='bottom-right' hideProgressBar theme="colored" /> */}
       {location.pathname === "/" ? (
         <HomePage />
       ) : (
